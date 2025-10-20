@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CypherX - AES Crypto Terminal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: #0a0e27;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Matrix Rain Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 0%, rgba(0, 255, 65, 0.03) 50%, transparent 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.03) 2px, rgba(0, 255, 65, 0.03) 4px);
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(20px); }
+        }
+
+        /* Grid Background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            width: 100%;
+            z-index: 2;
+            position: relative;
+        }
+
+        .card {
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid #00ff41;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 65, 0.3),
+                inset 0 0 30px rgba(0, 255, 65, 0.05);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes borderRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 
+                0 0 50px rgba(0, 255, 65, 0.6),
+                inset 0 0 50px rgba(0, 255, 65, 0.1);
+        }
+
+        /* Glitch Effect on Hover */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .card:hover::after {
+            left: 100%;
+        }
+
+        h2 {
+            color: #00ff41;
+            margin-bottom: 25px;
+            font-size: 28px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 
+                0 0 10px #00ff41,
+                0 0 20px #00ff41,
+                0 0 30px #00ff41;
+            animation: glitch 3s infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            92% { transform: translate(-2px, 2px); }
+            94% { transform: translate(2px, -2px); }
+            96% { transform: translate(-2px, -2px); }
+            98% { transform: translate(2px, 2px); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0ff;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 5px #0ff;
+            transition: all 0.3s ease;
+        }
+
+        textarea, select, input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.6);
+            color: #00ff41;
+            font-family: 'Share Tech Mono', monospace;
+            resize: vertical;
+            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        textarea::placeholder, input::placeholder {
+            color: rgba(0, 255, 65, 0.5);
+        }
+
+        textarea:focus, select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #0ff;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.5),
+                inset 0 0 20px rgba(0, 255, 255, 0.2);
+            transform: translateX(5px);
+            color: #0ff;
+        }
+
+        textarea:hover, select:hover, input[type="text"]:hover {
+            border-color: #0ff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300ff41' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+        }
+
+        select option {
+            background: #0a0e27;
+            color: #00ff41;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 25px;
+            margin-top: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #00ff41;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+        }
+
+        .radio-item:hover {
+            transform: translateX(8px);
+            border-color: #0ff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        input[type="radio"] {
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: #00ff41;
+            width: 18px;
+            height: 18px;
+            position: relative;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00ff41 0%, #0ff 100%);
+            color: #0a0e27;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(10, 14, 39, 0.5);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0ff 0%, #00ff41 100%);
+            transition: all 0.4s ease;
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 10px 30px rgba(0, 255, 65, 0.6),
+                0 0 30px rgba(0, 255, 255, 0.4);
+            border-color: #0ff;
+        }
+
+        .btn:active {
+            transform: translateY(-2px);
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            color: #00ff41;
+            font-family: 'Share Tech Mono', monospace;
+            word-break: break-all;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.2); }
+            50% { box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.4); }
+        }
+
+        .output-box:hover {
+            border-color: #0ff;
+            color: #0ff;
+            transform: translateX(5px);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.5),
+                inset 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background: #00ff41;
+            color: #0a0e27;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 18px;
+            font-size: 12px;
+            margin-left: 5px;
+            cursor: help;
+            transition: all 0.4s ease;
+            font-weight: bold;
+            box-shadow: 0 0 10px #00ff41;
+        }
+
+        .info-icon:hover {
+            transform: scale(1.4) rotate(360deg);
+            background: #0ff;
+            box-shadow: 0 0 20px #0ff;
+        }
+
+        /* Terminal Cursor Effect */
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .terminal-cursor {
+            animation: blink 1s infinite;
+        }
+
+        /* Scanline Effect */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(0, 255, 65, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    
+    <div class="container">
+        <!-- Encryption Card -->
+        <div class="card">
+            <h2>⚡ [ENCRYPT] ⚡</h2>
+            
+            <div class="form-group">
+                <label>// INPUT_DATA</label>
+                <textarea id="plainText" rows="4" placeholder="> Enter your plaintext message_"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>// CIPHER_MODE <span class="info-icon">?</span></label>
+                <select id="cipherMode">
+                    <option>CBC</option>
+                    <option>ECB</option>
+                    <option>CFB</option>
+                    <option>OFB</option>
+                    <option>CTR</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>// PADDING_SCHEME <span class="info-icon">?</span></label>
+                <select id="padding">
+                    <option>PKCS5Padding</option>
+                    <option>PKCS7Padding</option>
+                    <option>NoPadding</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>// INIT_VECTOR [OPTIONAL] <span class="info-icon">?</span></label>
+                <input type="text" id="iv" placeholder="> Enter IV hex value_">
+            </div>
+
+            <div class="form-group">
+                <label>// KEY_SIZE_BITS <span class="info-icon">?</span></label>
+                <select id="keySize">
+                    <option>128</option>
+                    <option>192</option>
+                    <option>256</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>// SECRET_KEY <span class="info-icon">?</span></label>
+                <input type="text" id="secretKey" placeholder="> Enter encryption key_">
+            </div>
+
+            <div class="form-group">
+                <label>// OUTPUT_FORMAT</label>
+                <div class="radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="outputFormat" value="base64" checked>
+                        BASE64
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="outputFormat" value="hex">
+                        HEX
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn" onclick="encrypt()"><span>◉ EXECUTE ENCRYPTION ◉</span></button>
+
+            <div class="form-group" style="margin-top: 25px;">
+                <label>// ENCRYPTED_OUTPUT</label>
+                <div class="output-box" id="encryptedOutput">> Awaiting encryption process<span class="terminal-cursor">_</span></div>
+            </div>
+        </div>
+
+        <!-- Decryption Card -->
+        <div class="card">
+            <h2>⚡ [DECRYPT] ⚡</h2>
+            
+            <div class="form-group">
+                <label>// ENCRYPTED_DATA</label>
+                <textarea id="encryptedText" rows="4" placeholder="> Paste encrypted ciphertext_"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>// CIPHER_MODE <span class="info-icon">?</span></label>
+                <select id="cipherModeDecrypt">
+                    <option>CBC</option>
+                    <option>ECB</option>
+                    <option>CFB</option>
+                    <option>OFB</option>
+                    <option>CTR</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>// PADDING_SCHEME <span class="info-icon">?</span></label>
+                <select id="paddingDecrypt">
+                    <option>PKCS5Padding</option>
+                    <option>PKCS7Padding</option>
+                    <option>NoPadding</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>// INIT_VECTOR [OPTIONAL] <span class="info-icon">?</span></label>
+                <input type="text" id="ivDecrypt" placeholder="> Enter IV used in encryption_">
+            </div>
+
+            <div class="form-group">
+                <label>// KEY_SIZE_BITS <span class="info-icon">?</span></label>
+                <select id="keySizeDecrypt">
+                    <option>128</option>
+                    <option>192</option>
+                    <option>256</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>// SECRET_KEY <span class="info-icon">?</span></label>
+                <input type="text" id="secretKeyDecrypt" placeholder="> Enter decryption key_">
+            </div>
+
+            <div class="form-group">
+                <label>// OUTPUT_FORMAT</label>
+                <div class="radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="outputFormatDecrypt" value="plaintext" checked>
+                        PLAINTEXT
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="outputFormatDecrypt" value="base64">
+                        BASE64
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn" onclick="decrypt()"><span>◉ EXECUTE DECRYPTION ◉</span></button>
+
+            <div class="form-group" style="margin-top: 25px;">
+                <label>// DECRYPTED_OUTPUT</label>
+                <div class="output-box" id="decryptedOutput">> Awaiting decryption process<span class="terminal-cursor">_</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+function deriveKeyFromPassphrase(passphrase, keySizeBits) {
+  if (keySizeBits === 256) {
+    return CryptoJS.SHA256(passphrase); // 32 bytes
+  }
+  const full = CryptoJS.SHA256(passphrase); // 256-bit hex
+  if (keySizeBits === 192) {
+    const hex24 = CryptoJS.enc.Hex.stringify(full).slice(0, 48); // 24 bytes
+    return CryptoJS.enc.Hex.parse(hex24);
+  }
+  // default 128
+  const hex16 = CryptoJS.enc.Hex.stringify(full).slice(0, 32); // 16 bytes
+  return CryptoJS.enc.Hex.parse(hex16);
+}
+
+function encrypt() {
+  const plainText = document.getElementById('plainText').value.trim();
+  const secretKey = document.getElementById('secretKey').value.trim();
+  const iv = document.getElementById('iv').value.trim();
+  const outputFormat = document.querySelector('input[name="outputFormat"]:checked').value;
+  const keySizeBits = Number(document.getElementById('keySize').value || 128);
+
+  if (!plainText || !secretKey) {
+    document.getElementById('encryptedOutput').textContent = '> ERROR: Missing plaintext or key_';
+    return;
+  }
+
+  try {
+    const key = deriveKeyFromPassphrase(secretKey, keySizeBits);
+    const ivBytes = iv ? (CryptoJS.enc.Hex.parse(iv.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(iv) ? iv : CryptoJS.enc.Hex.stringify(CryptoJS.enc.Utf8.parse(iv))) ) : CryptoJS.lib.WordArray.random(16);
+
+    // Use parsed plaintext for predictable behavior
+    const encrypted = CryptoJS.AES.encrypt(
+      CryptoJS.enc.Utf8.parse(plainText),
+      key,
+      { iv: ivBytes, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+    );
+
+    const result = outputFormat === 'base64'
+      ? encrypted.ciphertext.toString(CryptoJS.enc.Base64)
+      : encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+
+    document.getElementById('encryptedOutput').innerHTML = '> SUCCESS: ' + result + '<span class="terminal-cursor">_</span>';
+    // show IV in hex (useful if it was auto-generated)
+    document.getElementById('generatedIv')?.textContent && (document.getElementById('generatedIv').textContent = (() => {
+      try { return iv ? ( /^[0-9a-fA-F]+$/.test(iv) ? iv : CryptoJS.enc.Hex.stringify(CryptoJS.enc.Utf8.parse(iv)) ) : CryptoJS.enc.Hex.stringify(ivBytes); }
+      catch(e){ return CryptoJS.enc.Hex.stringify(ivBytes); }
+    })());
+
+  } catch (error) {
+    document.getElementById('encryptedOutput').innerHTML = '> ERROR: ' + error.message + '<span class="terminal-cursor">_</span>';
+  }
+}
+
+function decrypt() {
+  const encryptedText = document.getElementById('encryptedText').value.trim();
+  const secretKey = document.getElementById('secretKeyDecrypt').value.trim();
+  const iv = document.getElementById('ivDecrypt').value.trim();
+  const keySizeBits = Number(document.getElementById('keySizeDecrypt').value || 128);
+
+  if (!encryptedText || !secretKey) {
+    document.getElementById('decryptedOutput').textContent = '> ERROR: Missing ciphertext or key_';
+    return;
+  }
+
+  try {
+    const key = deriveKeyFromPassphrase(secretKey, keySizeBits);
+
+    // IV must be a WordArray — allow hex IV or UTF8 string IV
+    let ivBytes;
+    if (iv) {
+      if (/^[0-9a-fA-F]+$/.test(iv) && iv.length % 2 === 0) {
+        ivBytes = CryptoJS.enc.Hex.parse(iv);
+      } else {
+        ivBytes = CryptoJS.enc.Utf8.parse(iv);
+      }
+    } else {
+      ivBytes = null; // ECB will ignore; other modes need IV
+    }
+
+    // detect if encryptedText is hex or base64
+    let cipherParams;
+    if (/^[0-9a-fA-F]+$/.test(encryptedText) && encryptedText.length % 2 === 0) {
+      cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Hex.parse(encryptedText) });
+    } else {
+      cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: CryptoJS.enc.Base64.parse(encryptedText) });
+    }
+
+    const decrypted = CryptoJS.AES.decrypt(
+      cipherParams,
+      key,
+      { iv: ivBytes, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+    );
+
+    const result = decrypted.toString(CryptoJS.enc.Utf8);
+
+    document.getElementById('decryptedOutput').innerHTML = result
+      ? '> SUCCESS: ' + result + '<span class="terminal-cursor">_</span>'
+      : '> ERROR: Decryption failed - Invalid key/IV<span class="terminal-cursor">_</span>';
+  } catch (error) {
+    document.getElementById('decryptedOutput').innerHTML = '> ERROR: ' + error.message + '<span class="terminal-cursor">_</span>';
+  }
+}
+</script>
+
+
+</body>
+</html>
